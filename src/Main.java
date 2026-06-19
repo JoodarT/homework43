@@ -4,22 +4,17 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Main {
-
-
-    private static final String PUBLIC_DIR = "public";
+    private static final String TEMPLATES_DIR = "templates";
 
     public static void main(String[] args) {
         try {
             HttpServer server = makeServer();
-
-
             initRoutes(server);
             server.start();
         } catch (IOException e) {
@@ -40,14 +35,14 @@ public class Main {
                 pathStr = "/index.html";
             }
 
-            Path filePath = Paths.get(PUBLIC_DIR, pathStr);
+            Path filePath = Paths.get(TEMPLATES_DIR, pathStr);
 
             if (!Files.exists(filePath) || Files.isDirectory(filePath)) {
                 send404(exchange, pathStr);
                 return;
             }
 
-            String contentType = getContentType(filePath);
+            String contentType = getContentType(pathStr);
             byte[] fileBytes = Files.readAllBytes(filePath);
 
             exchange.getResponseHeaders().add("Content-Type", contentType);
@@ -64,8 +59,8 @@ public class Main {
         }
     }
 
-    private static String getContentType(Path filePath) {
-        String fileName = filePath.getFileName().toString().toLowerCase();
+    private static String getContentType(String pathStr) {
+        String fileName = pathStr.toLowerCase();
 
         if (fileName.endsWith(".html") || fileName.endsWith(".htm")) {
             return "text/html; charset=utf-8";
@@ -77,6 +72,8 @@ public class Main {
             return "image/png";
         } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
             return "image/jpeg";
+        } else if (fileName.endsWith(".gif")) {
+            return "image/gif";
         } else if (fileName.endsWith(".json")) {
             return "application/json; charset=utf-8";
         }
