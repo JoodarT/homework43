@@ -14,9 +14,6 @@ public class Main {
     public static void main(String[] args) {
         try {
             HttpServer server = makeServer();
-
-
-
             initRoutes(server);
 
             server.start();
@@ -26,9 +23,9 @@ public class Main {
     }
 
     private static void initRoutes(HttpServer server) {
-        server.createContext("/", Main::handleRequest);
-        server.createContext("/apps/", Main::handleRequest);
-        server.createContext("/apps/profile", Main::handleRequest);
+        server.createContext("/", Main::handleRootRequest);
+        server.createContext("/apps/", Main::handleAppsRequest);
+        server.createContext("/apps/profile", Main::handleProfileRequest);
     }
 
     private static void handleRootRequest(HttpExchange exchange) {
@@ -39,33 +36,43 @@ public class Main {
         }
     }
 
-    private static void writeBaseInfo(PrintWriter writer, HttpExchange exchange) {
+    private static void handleAppsRequest(HttpExchange exchange) {
+        startResponse(exchange);
+        try (PrintWriter writer = getWriterFrom(exchange)) {
+            writer.println("=== СПИСОК ПРИЛОЖЕНИЙ ===");
+            writer.println("Доступные приложения: Чат, Калькулятор, Заметки.");
+            writeBaseInfo(writer, exchange);
+        }
+    }
+
+    private static void handleProfileRequest(HttpExchange exchange) {
+        startResponse(exchange);
+        try (PrintWriter writer = getWriterFrom(exchange)) {
+            writer.println("=== ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ ===");
+            writer.println("Имя: Иван Иванов");
+            writer.println("Статус: Студент Tractor School");
+            writeBaseInfo(writer, exchange);
+        }
     }
 
     private static void startResponse(HttpExchange exchange) {
-    }
-
-    private static void handleRequest(HttpExchange exchange) {
         try {
-            exchange.getResponseHeaders().add("Content-Type", "text/plain; charset = utf-8");
-            int responseCode = 200;
-            int length = 0;
-            exchange.sendResponseHeaders(responseCode, length);
-
+            exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=utf-8");
+            exchange.sendResponseHeaders(200, 0);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
-        try (PrintWriter writer = getWriterFrom(exchange)) {
-            String method = exchange.getRequestMethod();
-            URI uri = exchange.getRequestURI();
-            String path = exchange.getHttpContext().getPath();
-            write(writer, "HTTP method", method);
-            write(writer, "Запрос", uri.toString());
-            write(writer, "Обработка через ", path);
-            writeHeaders(writer, "Заголовки запроса", exchange.getResponseHeaders());
-        }
+    private static void writeBaseInfo(PrintWriter writer, HttpExchange exchange) {
+        String method = exchange.getRequestMethod();
+        URI uri = exchange.getRequestURI();
+        String path = exchange.getHttpContext().getPath();
 
+        write(writer, "HTTP method", method);
+        write(writer, "Запрос", uri.toString());
+        write(writer, "Обработка через", path);
+        writeHeaders(writer, "Заголовки запроса", exchange.getRequestHeaders()); // Изменено на getRequestHeaders
     }
 
     private static void writeHeaders(PrintWriter writer, String type, Headers headers) {
@@ -73,8 +80,8 @@ public class Main {
         headers.forEach((k, v) -> write(writer, "\t" + k, v.toString()));
     }
 
-    private static void write(PrintWriter writer, String msg, String method) {
-        String data = String.format("%s:%s%n%n", msg, method);
+    private static void write(PrintWriter writer, String msg, String value) {
+        writer.printf("%s: %s%n%n", msg, value);
     }
 
     private static PrintWriter getWriterFrom(HttpExchange exchange) {
@@ -87,11 +94,11 @@ public class Main {
         String host = "localhost";
         InetSocketAddress address = new InetSocketAddress(host, 8990);
 
-        String msg = "запускаем сервер по адресу: " + "http://%s:%s/%n";
+        String msg = "Запускаем сервер по адресу: " + "http://%s:%s/%n";
         System.out.printf(msg, address.getHostName(), address.getPort());
 
         HttpServer server = HttpServer.create(address, 50);
-        System.out.println(" удачно");
+        System.out.println("Удачно");
         return server;
     }
 }
