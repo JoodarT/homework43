@@ -15,7 +15,11 @@ public class Main {
         try {
             HttpServer server = makeServer();
 
+
+
             initRoutes(server);
+
+            server.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -25,6 +29,20 @@ public class Main {
         server.createContext("/", Main::handleRequest);
         server.createContext("/apps/", Main::handleRequest);
         server.createContext("/apps/profile", Main::handleRequest);
+    }
+
+    private static void handleRootRequest(HttpExchange exchange) {
+        startResponse(exchange);
+        try (PrintWriter writer = getWriterFrom(exchange)) {
+            writer.println("=== ГЛАВНАЯ СТРАНИЦА ===");
+            writeBaseInfo(writer, exchange);
+        }
+    }
+
+    private static void writeBaseInfo(PrintWriter writer, HttpExchange exchange) {
+    }
+
+    private static void startResponse(HttpExchange exchange) {
     }
 
     private static void handleRequest(HttpExchange exchange) {
