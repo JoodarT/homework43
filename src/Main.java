@@ -11,11 +11,14 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public class Main {
+
+    private static final String PUBLIC_DIR = "templates";
+
+
     public static void main(String[] args) {
         try {
             HttpServer server = makeServer();
             initRoutes(server);
-
             server.start();
         } catch (IOException e) {
             e.printStackTrace();
@@ -23,9 +26,10 @@ public class Main {
     }
 
     private static void initRoutes(HttpServer server) {
-        server.createContext("/", Main::handleRootRequest);
-        server.createContext("/apps/", Main::handleAppsRequest);
-        server.createContext("/apps/profile", Main::handleProfileRequest);
+        server.createContext("/", Main::handleFileRequest);
+    }
+
+    private static void handleFileRequest(HttpExchange httpExchange) {
     }
 
     private static void handleRootRequest(HttpExchange exchange) {
